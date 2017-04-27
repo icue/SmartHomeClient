@@ -2,22 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:weightSum="1">
     <ImageView
         android:id="@+id/FBPic"
         android:contentDescription="Picture from Firebase"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.8"
+        android:layout_weight="0.7"
         android:layout_marginTop="0dp"/>
-
-    <EditText
-        android:id="@+id/Message"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"
-        android:hint="Your message to the visitor..."
-        android:inputType="text" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,6 +20,15 @@
         android:weightSum="3"
         android:orientation="horizontal">
 
+        <icue.com.smarthomeclient.models.InstantAutoComplete
+            android:id="@+id/Message"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="2"
+            android:hint="Your message to the visitor..."
+            android:inputType="text"
+            android:textSize="18sp" />
+
         <Button
             android:id="@+id/SendButton"
             android:layout_width="0dp"
@@ -33,6 +36,25 @@
             android:layout_weight="1"
             android:text="Send"
             android:textSize="20sp" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/RecordButton"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:text="Push to record audio."
+        android:layout_weight="0.1"
+        android:textSize="20sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        android:weightSum="2"
+        android:orientation="horizontal">
+
+
 
         <Button
             android:id="@+id/IgnoreButton"
