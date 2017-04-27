@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "808736008317",
+    "firebase_url": "https://testfrontend-41482.firebaseio.com",
+    "project_id": "testfrontend-41482",
+    "storage_bucket": "testfrontend-41482.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:808736008317:android:9c9ff99914aec2ea",
+        "android_client_info": {
+          "package_name": "icue.com.smarthomeclient"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "808736008317-up4bnsdoptec7eohdi5hdh5b10qb8c1d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "icue.com.smarthomeclient",
+            "certificate_hash": "c0f4587e828f271c7a35594d13e68008d2bf477a"
+          }
+        },
+        {
+          "client_id": "808736008317-galdi3a77oeg31edrfpcnn8i8gdbik96.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoXMrTwZMUTd3X9LKa-RLZZ_cBjzH0byg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "808736008317-galdi3a77oeg31edrfpcnn8i8gdbik96.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
