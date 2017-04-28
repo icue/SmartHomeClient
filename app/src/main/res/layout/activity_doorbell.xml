@@ -43,7 +43,7 @@
         android:id="@+id/RecordButton"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:text="Push to record audio."
+        android:text="Push to record audio"
         android:layout_weight="0.1"
         android:textSize="20sp" />
 
