@@ -30,7 +30,9 @@
             android:layout_marginTop="10dp"
             android:layout_weight="0.15"
             android:text="Scan QR Code"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:background="@color/colorAccent"
+            style="@style/Widget.AppCompat.Button.Colored"/>
 
         <Button
             android:id="@+id/proceedButton"
@@ -39,7 +41,9 @@
             android:layout_marginTop="10dp"
             android:layout_weight="0.15"
             android:text="Continue to Doorbell"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:background="@color/colorPrimary"
+            style="@style/Widget.AppCompat.Button.Colored" />
 
         <ImageView
             android:id="@+id/QRCode"

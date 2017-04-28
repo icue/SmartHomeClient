@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.NotificationCompat;
@@ -37,13 +38,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Queue;
-
 /**
  * Created by Icue on 2017/4/25.
  */
@@ -54,17 +50,22 @@ public class DoorBellActivity extends AppCompatActivity {
 
     private static String androidID;
     private static String applicationID = "1";
+    private static int recordThreshold = 400;
+    private static String[] responseTemplates ={"Please come in.",
+                                                "I'm not home.",
+                                                "Please don't wait for me.",
+                                                "Be right back soon."};
+    private Context context = this;
     private String groupID = null;
     private DatabaseReference myRef;
     private ImageView FBPic;
-    private Context context = this;
     private String prevPic = "";
-    private String prevAud = "";
     private NotificationManager mNotifyMgr;
     private InstantAutoComplete msg;
     private Button mRecordBtn;
     private MediaRecorder mediaRecorder = new MediaRecorder();
     private File myAudioFile;
+    private CountDownTimer ct;
 
     private Deque<Record> history = new ArrayDeque<>();
 
@@ -83,26 +84,22 @@ public class DoorBellActivity extends AppCompatActivity {
         final Bundle bundle = getIntent().getExtras();
         groupID = bundle.get("groupID").toString();
         androidID = bundle.get("androidID").toString();
-        Button sendButton = (Button) findViewById(R.id.SendButton);
-        Button backButton = (Button) findViewById(R.id.BackButton);
-        mRecordBtn = (Button) findViewById(R.id.RecordButton);
-
-        FBPic = (ImageView)findViewById(R.id.FBPic);
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference(groupID).child(applicationID);
 
         ReadHistory();
 
-        String[] responseTemplates ={"Please come in.",
-                                    "I'm not home.",
-                                    "Please don't wait for me.",
-                                    "Be right back soon."};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,android.R.layout.simple_dropdown_item_1line,responseTemplates);
-        //Getting the instance of AutoCompleteTextView
-        msg = (InstantAutoComplete) findViewById(R.id.Message);
-        msg.setThreshold(0);//will start working from first character
-        msg.setAdapter(adapter);//setting the adapter data into the AutoCompleteTextView
+        Button sendButton = (Button) findViewById(R.id.SendButton);
+        Button backButton = (Button) findViewById(R.id.BackButton);
+        Button mIgnoreBtn = (Button) findViewById(R.id.IgnoreButton);
+        mRecordBtn = (Button) findViewById(R.id.RecordButton);
+        FBPic = (ImageView)findViewById(R.id.FBPic);
 
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        myRef = database.getReference(groupID).child(applicationID);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,android.R.layout.simple_dropdown_item_1line,responseTemplates);
+        msg = (InstantAutoComplete) findViewById(R.id.Message);
+        msg.setThreshold(0);
+        msg.setAdapter(adapter);
         msg.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 msg.showDropDown();
@@ -114,20 +111,42 @@ public class DoorBellActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 float y1 = 0, y2, dy;
                 if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    ct = new CountDownTimer(recordThreshold, recordThreshold) {
+                        @Override
+                        public void onTick(long arg0) {
+                            // Auto-generated method stub
+                        }
+                        @Override
+                        public void onFinish() {
+                            mRecordBtn.setText("Recording... Swap up to cancel");
+                            int color = ContextCompat.getColor(context, R.color.colorAccent);
+                            mRecordBtn.setBackgroundColor(color);
+                        }
+                    };
+                    ct.start();
                     y1 = event.getY();
-                    mRecordBtn.setText("Recording... Swap up to cancel.");
-                    int color = ContextCompat.getColor(context, R.color.colorAccent);
-                    mRecordBtn.setBackgroundColor(color);
                     startRecord();
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    y2 = event.getY();
-                    dy = y2 - y1;
-                    mRecordBtn.setText("Push to record audio.");
-                    mRecordBtn.setBackgroundResource(android.R.drawable.btn_default);
-                    if(dy < -60)
+                    long t = event.getEventTime() - event.getDownTime();
+                    if(t < recordThreshold){
+                        ct.cancel();
+                        Toast.makeText(getBaseContext(), "time elapsed "+t, Toast.LENGTH_SHORT).show();
                         discardRecord();
-                    else
-                        stopRecord();
+                        String prevAudio = history.isEmpty() ? "" : history.getLast().getAudio();
+                        playAudio(prevAudio);
+                    } else {
+                        y2 = event.getY();
+                        dy = y2 - y1;
+                        mRecordBtn.setText("Click to listen / Push to record");
+                        int color = ContextCompat.getColor(context, R.color.colorPrimaryDark);
+                        mRecordBtn.setBackgroundColor(color);
+                        if (dy < -60){
+                            discardRecord();
+                            Toast.makeText(getBaseContext(), "Audio discarded.", Toast.LENGTH_SHORT).show();
+                        }
+                        else
+                            stopRecord();
+                    }
                 }
                 return true;
             }
@@ -168,14 +187,17 @@ public class DoorBellActivity extends AppCompatActivity {
 
                 if(!prevPic.equals(newPic)) {
 //                Toast.makeText(getBaseContext(), "DB Changed " + value, Toast.LENGTH_SHORT).show();
-                    history.add(new Record(newPic,dataSnapshot.child("timestamp").getValue(String.class)));
+                    history.add(new Record(newPic,
+                                    dataSnapshot.child("timestamp").getValue(String.class),
+                                    dataSnapshot.child("audio").getValue(String.class)
+                                    ));
                     if(history.size()>10) history.removeFirst();
                     SaveHistory();
 
                     Toast.makeText(getBaseContext(), "DB Changed pic with timestamp " +history.getLast().getTimestamp() , Toast.LENGTH_SHORT).show();
                     NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                             .setSmallIcon(R.mipmap.ic_launcher)
-                            .setContentTitle("New activity")
+                            .setContentTitle("New visitor")
                             .setContentText("A new photo has been received.")
                             .setAutoCancel(true);
 
@@ -207,53 +229,53 @@ public class DoorBellActivity extends AppCompatActivity {
             }
         });
 
-        myRef.child("current").child("audio").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                String value = dataSnapshot.getValue(String.class);
-
-                if(value!=null && !value.equals("") && !value.equals(prevAud)) {
-//                    Toast.makeText(getBaseContext(), "DB Changed " + value, Toast.LENGTH_SHORT).show();
-                    try {
-                        byte[] decoded = Base64.decode(value, 0);
-
-                        MediaPlayer mediaPlayer = new MediaPlayer();
-
-                        // create temp file that will hold byte array
-                        File tempMp3 = File.createTempFile("receive_", "amr", getCacheDir());
-                        tempMp3.deleteOnExit();
-                        FileOutputStream fos = new FileOutputStream(tempMp3);
-                        fos.write(decoded);
-                        fos.close();
-
-                        // resetting mediaplayer instance to evade problems
-                        mediaPlayer.reset();
-
-                        // In case you run into issues with threading consider new instance like:
-                        // MediaPlayer mediaPlayer = new MediaPlayer();
-
-                        // Tried passing path directly, but kept getting
-                        // "Prepare failed.: status=0x1"
-                        // so using file descriptor instead
-                        FileInputStream fis = new FileInputStream(tempMp3);
-                        mediaPlayer.setDataSource(fis.getFD());
-
-                        mediaPlayer.prepare();
-                        mediaPlayer.start();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                prevAud = value;
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });
+//        myRef.child("current").child("audio").addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+//                String value = dataSnapshot.getValue(String.class);
+//
+//                if(value!=null && !value.equals("") && !value.equals(prevAud)) {
+////                    Toast.makeText(getBaseContext(), "DB Changed " + value, Toast.LENGTH_SHORT).show();
+//                    try {
+//                        byte[] decoded = Base64.decode(value, 0);
+//
+//                        MediaPlayer mediaPlayer = new MediaPlayer();
+//
+//                        // create temp file that will hold byte array
+//                        File tempMp3 = File.createTempFile("receive_", "amr", getCacheDir());
+//                        tempMp3.deleteOnExit();
+//                        FileOutputStream fos = new FileOutputStream(tempMp3);
+//                        fos.write(decoded);
+//                        fos.close();
+//
+//                        // resetting mediaplayer instance to evade problems
+//                        mediaPlayer.reset();
+//
+//                        // In case you run into issues with threading consider new instance like:
+//                        // MediaPlayer mediaPlayer = new MediaPlayer();
+//
+//                        // Tried passing path directly, but kept getting
+//                        // "Prepare failed.: status=0x1"
+//                        // so using file descriptor instead
+//                        FileInputStream fis = new FileInputStream(tempMp3);
+//                        mediaPlayer.setDataSource(fis.getFD());
+//
+//                        mediaPlayer.prepare();
+//                        mediaPlayer.start();
+//                    } catch (Exception ex) {
+//                        ex.printStackTrace();
+//                    }
+//                }
+//                prevAud = value;
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError error) {
+//                Log.w(TAG, "Failed to read value.", error.toException());
+//            }
+//        });
     }
 
     private static Bitmap decodeFromBase64(String image) throws IOException, IllegalArgumentException {
@@ -283,20 +305,27 @@ public class DoorBellActivity extends AppCompatActivity {
 
     private void discardRecord() {
         if (myAudioFile != null) {
-            mediaRecorder.stop();
-            mediaRecorder.release();
-            mediaRecorder = null;
-            Toast.makeText(getBaseContext(), "Audio discarded.", Toast.LENGTH_SHORT).show();
+            try {
+                mediaRecorder.stop();
+                mediaRecorder.release();
+                mediaRecorder = null;
+            } catch(RuntimeException e) {
+                myAudioFile.delete();
+            }
         }
     }
 
     private void stopRecord() {
         if (myAudioFile != null) {
-            mediaRecorder.stop();
-            mediaRecorder.release();
-            mediaRecorder = null;
-            myRef.child("current").child("clientAudio").setValue(audioEncode(myAudioFile));
-            Toast.makeText(getBaseContext(), "Audio sent.", Toast.LENGTH_SHORT).show();
+            try {
+                mediaRecorder.stop();
+                mediaRecorder.release();
+                mediaRecorder = null;
+                myRef.child("current").child("clientAudio").setValue(audioEncode(myAudioFile));
+                Toast.makeText(getBaseContext(), "Audio sent.", Toast.LENGTH_SHORT).show();
+            } catch(RuntimeException e) {
+                myAudioFile.delete();
+            }
         }
     }
 
@@ -349,6 +378,25 @@ public class DoorBellActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(getBaseContext(), "read error " +e.getMessage(), Toast.LENGTH_SHORT).show();
             e.printStackTrace();
+        }
+    }
+
+    private void playAudio(String audio) {
+        try {
+            byte[] decoded = Base64.decode(audio, 0);
+            MediaPlayer mediaPlayer = new MediaPlayer();
+            File tempMp3 = File.createTempFile("audio_", "amr", getCacheDir());
+            tempMp3.deleteOnExit();
+            FileOutputStream fos = new FileOutputStream(tempMp3);
+            fos.write(decoded);
+            fos.close();
+            mediaPlayer.reset();
+            FileInputStream fis = new FileInputStream(tempMp3);
+            mediaPlayer.setDataSource(fis.getFD());
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }

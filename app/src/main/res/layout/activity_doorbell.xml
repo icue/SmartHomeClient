@@ -35,7 +35,11 @@
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:text="Send"
-            android:textSize="20sp" />
+            android:stateListAnimator="@null"
+            android:textSize="20sp"
+            android:layout_marginBottom="3dp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/my_button" />
 
     </LinearLayout>
 
@@ -43,18 +47,31 @@
         android:id="@+id/RecordButton"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:text="Push to record audio"
+        android:text="Click to listen / Push to record"
         android:layout_weight="0.1"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+
+        android:background="@color/colorPrimaryDark"
+        style="@style/Widget.AppCompat.Button.Colored"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.1"
-        android:weightSum="2"
+        android:layout_marginTop="3dp"
+        android:weightSum="3"
         android:orientation="horizontal">
 
-
+        <Button
+            android:id="@+id/HistoryButton"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="History"
+            android:stateListAnimator="@null"
+            android:textSize="20sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/my_button"/>
 
         <Button
             android:id="@+id/IgnoreButton"
@@ -62,7 +79,12 @@
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:text="Ignore"
-            android:textSize="20sp" />
+            android:stateListAnimator="@null"
+            android:textSize="20sp"
+            android:layout_marginLeft="2sp"
+            android:layout_marginRight="2sp"
+            android:textColor="@color/colorAccent"
+            android:background="@drawable/my_button_pink"/>
 
         <Button
             android:id="@+id/BackButton"
@@ -70,7 +92,10 @@
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:text="Back"
-            android:textSize="20sp" />
+            android:stateListAnimator="@null"
+            android:textSize="20sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/my_button"/>
 
     </LinearLayout>
 
