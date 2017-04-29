@@ -219,6 +219,7 @@ public class DoorBellActivity extends AppCompatActivity {
                     int color = ContextCompat.getColor(context, R.color.disabled);
                     sendButton.setTextColor(color);
                     mRecordBtn.setText("Click to play");
+                    showToastMsg(getBaseContext(), "Message replied: "+msg, 1);
                 }
 
                 String newPic = dataSnapshot.child("picture").getValue(String.class);
@@ -230,7 +231,10 @@ public class DoorBellActivity extends AppCompatActivity {
                                     dataSnapshot.child("timestamp").getValue(String.class),
                                     dataSnapshot.child("audio").getValue(String.class)
                                     ));
-                    if(history.size()>10) history.removeFirst();
+                    if(history.size()>10) {
+                        Record evict = history.removeFirst();
+                        myRef.child("history").child(evict.getTimestamp()).removeValue();
+                    }
                     SaveHistory();
 
                     showToastMsg(getBaseContext(), "DB updated picture with timestamp " + history.getLast().getTimestamp());
