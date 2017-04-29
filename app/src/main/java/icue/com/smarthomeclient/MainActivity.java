@@ -78,29 +78,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-//        instTextView.addTextChangedListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-//
-//            @Override
-//            public void onTextChanged(CharSequence s, int start, int before, int count) { }
-//
-//            @Override
-//            public void afterTextChanged(Editable s) {
-//                groupID = s.toString();
-//                //textView.setText(groupID);
-////                    downloadDefaultConfig();
-//                WriteID(instTextView);
-//                proceedButton.setEnabled(true);
-//                try {
-//                    Bitmap bitmap = TextToImageEncode(groupID);
-//                    QRCode.setImageBitmap(bitmap);
-//                } catch (WriterException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-
         scanButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 //Propagate Main Activity to IntentIntegrator
@@ -145,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("URL: " + groupID);
                 instTextView.setText(groupID);
                 if(!groupID.isEmpty()) {
-//                    downloadDefaultConfig();
                     WriteID(instTextView);
                     proceedButton.setEnabled(true);
                     try {
@@ -179,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
             for (int y = 0; y < bitMatrixHeight; y++) {
             int offset = y * bitMatrixWidth;
             for (int x = 0; x < bitMatrixWidth; x++) {
-//                int color = ContextCompat.getColor(this, R.color.colorAccent);
                 pixels[offset + x] = bitMatrix.get(x, y) ?
                         Color.rgb(0,0,0):Color.rgb(255,255,255);
             }

@@ -13,12 +13,9 @@ public class Record implements Serializable {
         audio = "";
         timestamp = "";
     }
-    public Record(String image, String timestamp) {
+    public Record(String image, String timestamp, String audio) {
         this.image = image;
         this.timestamp = timestamp;
-    }
-    public Record(String image, String timestamp, String audio) {
-        this(image,timestamp);
         this.audio = audio;
     }
     public String getImage(){

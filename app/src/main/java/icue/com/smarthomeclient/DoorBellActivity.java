@@ -6,14 +6,11 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.NotificationCompat;
-import android.util.Base64;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,8 +27,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -40,6 +35,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
+
+import static icue.com.smarthomeclient.models.Utils.audioEncode;
+import static icue.com.smarthomeclient.models.Utils.decodeFromBase64;
+import static icue.com.smarthomeclient.models.Utils.playAudio;
+import static icue.com.smarthomeclient.models.Utils.showToastMsg;
+
 /**
  * Created by Icue on 2017/4/25.
  */
@@ -90,6 +91,7 @@ public class DoorBellActivity extends AppCompatActivity {
         Button sendButton = (Button) findViewById(R.id.SendButton);
         Button backButton = (Button) findViewById(R.id.BackButton);
         Button mIgnoreBtn = (Button) findViewById(R.id.IgnoreButton);
+        final Button historyBtn = (Button) findViewById(R.id.HistoryButton);
         mRecordBtn = (Button) findViewById(R.id.RecordButton);
         FBPic = (ImageView)findViewById(R.id.FBPic);
 
@@ -130,10 +132,10 @@ public class DoorBellActivity extends AppCompatActivity {
                     long t = event.getEventTime() - event.getDownTime();
                     if(t < recordThreshold){
                         ct.cancel();
-                        Toast.makeText(getBaseContext(), "time elapsed "+t, Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getBaseContext(), "time elapsed "+t, Toast.LENGTH_SHORT).show();
                         discardRecord();
                         String prevAudio = history.isEmpty() ? "" : history.getLast().getAudio();
-                        playAudio(prevAudio);
+                        playAudio(prevAudio, getCacheDir());
                     } else {
                         y2 = event.getY();
                         dy = y2 - y1;
@@ -142,7 +144,7 @@ public class DoorBellActivity extends AppCompatActivity {
                         mRecordBtn.setBackgroundColor(color);
                         if (dy < -60){
                             discardRecord();
-                            Toast.makeText(getBaseContext(), "Audio discarded.", Toast.LENGTH_SHORT).show();
+                            showToastMsg(getBaseContext(), "Audio discarded");
                         }
                         else
                             stopRecord();
@@ -167,11 +169,18 @@ public class DoorBellActivity extends AppCompatActivity {
                 msg.setText("");
                 if(!msgToSend.equals("")){
                     myRef.child("current").child("message").setValue(msgToSend);
-//                    myRef.child("current").setValue(new Record("789","456"));
                 } else {
-                    Toast.makeText(getBaseContext(), "Please fill the message.", Toast.LENGTH_SHORT).show();
+                    showToastMsg(getBaseContext(), "Please fill the message.");
                 }
                 msg.clearFocus();
+            }
+        });
+
+        historyBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(DoorBellActivity.this, HistoryActivity.class);
+                intent.putExtra("groupID", groupID);
+                startActivity(intent);
             }
         });
 
@@ -186,7 +195,6 @@ public class DoorBellActivity extends AppCompatActivity {
                 prevPic = history.isEmpty() ? "" : history.getLast().getImage();
 
                 if(!prevPic.equals(newPic)) {
-//                Toast.makeText(getBaseContext(), "DB Changed " + value, Toast.LENGTH_SHORT).show();
                     history.add(new Record(newPic,
                                     dataSnapshot.child("timestamp").getValue(String.class),
                                     dataSnapshot.child("audio").getValue(String.class)
@@ -194,7 +202,7 @@ public class DoorBellActivity extends AppCompatActivity {
                     if(history.size()>10) history.removeFirst();
                     SaveHistory();
 
-                    Toast.makeText(getBaseContext(), "DB Changed pic with timestamp " +history.getLast().getTimestamp() , Toast.LENGTH_SHORT).show();
+                    showToastMsg(getBaseContext(), "DB updated picture with timestamp " + history.getLast().getTimestamp());
                     NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle("New visitor")
@@ -215,7 +223,8 @@ public class DoorBellActivity extends AppCompatActivity {
 
                 // newPic should not start with "data:image/jpeg;base64,/9j/...
                 try {
-                    FBPic.setImageBitmap(decodeFromBase64(newPic));
+                    Bitmap bm = decodeFromBase64(newPic);
+                    FBPic.setImageBitmap(bm);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -224,63 +233,9 @@ public class DoorBellActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError error) {
-                // Failed to read value
                 Log.w(TAG, "Failed to read value.", error.toException());
             }
         });
-
-//        myRef.child("current").child("audio").addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-//                String value = dataSnapshot.getValue(String.class);
-//
-//                if(value!=null && !value.equals("") && !value.equals(prevAud)) {
-////                    Toast.makeText(getBaseContext(), "DB Changed " + value, Toast.LENGTH_SHORT).show();
-//                    try {
-//                        byte[] decoded = Base64.decode(value, 0);
-//
-//                        MediaPlayer mediaPlayer = new MediaPlayer();
-//
-//                        // create temp file that will hold byte array
-//                        File tempMp3 = File.createTempFile("receive_", "amr", getCacheDir());
-//                        tempMp3.deleteOnExit();
-//                        FileOutputStream fos = new FileOutputStream(tempMp3);
-//                        fos.write(decoded);
-//                        fos.close();
-//
-//                        // resetting mediaplayer instance to evade problems
-//                        mediaPlayer.reset();
-//
-//                        // In case you run into issues with threading consider new instance like:
-//                        // MediaPlayer mediaPlayer = new MediaPlayer();
-//
-//                        // Tried passing path directly, but kept getting
-//                        // "Prepare failed.: status=0x1"
-//                        // so using file descriptor instead
-//                        FileInputStream fis = new FileInputStream(tempMp3);
-//                        mediaPlayer.setDataSource(fis.getFD());
-//
-//                        mediaPlayer.prepare();
-//                        mediaPlayer.start();
-//                    } catch (Exception ex) {
-//                        ex.printStackTrace();
-//                    }
-//                }
-//                prevAud = value;
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError error) {
-//                Log.w(TAG, "Failed to read value.", error.toException());
-//            }
-//        });
-    }
-
-    private static Bitmap decodeFromBase64(String image) throws IOException, IllegalArgumentException {
-        byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
     }
 
     private void startRecord() {
@@ -322,21 +277,11 @@ public class DoorBellActivity extends AppCompatActivity {
                 mediaRecorder.release();
                 mediaRecorder = null;
                 myRef.child("current").child("clientAudio").setValue(audioEncode(myAudioFile));
-                Toast.makeText(getBaseContext(), "Audio sent.", Toast.LENGTH_SHORT).show();
+                showToastMsg(getBaseContext(), "Audio sent.");
             } catch(RuntimeException e) {
                 myAudioFile.delete();
             }
         }
-    }
-
-    private String audioEncode(File file) {
-        byte[] bytes = null;
-        try {
-            bytes = FileUtils.readFileToByteArray(file);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Base64.encodeToString(bytes, 0);
     }
 
     private void SaveHistory() {
@@ -352,7 +297,7 @@ public class DoorBellActivity extends AppCompatActivity {
             os.close();
             fos.close();
         } catch (Exception e) {
-            Toast.makeText(getBaseContext(), "save error " +e.getMessage(), Toast.LENGTH_SHORT).show();
+            showToastMsg(getBaseContext(), "History file save error: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -360,7 +305,7 @@ public class DoorBellActivity extends AppCompatActivity {
     private void ReadHistory() {
         File file = context.getFileStreamPath(groupID);
         if (file == null || !file.exists()) {
-            Toast.makeText(getBaseContext(), "no file exist", Toast.LENGTH_SHORT).show();
+            showToastMsg(getBaseContext(), "No history file detected.");
             return;
         }
         try {
@@ -372,31 +317,14 @@ public class DoorBellActivity extends AppCompatActivity {
             for (int c=0; c < count; c++)
                 history.add((Record) is.readObject());
 
-            Toast.makeText(getBaseContext(), "Newest timestamp " +history.getLast().getTimestamp(), Toast.LENGTH_SHORT).show();
+            showToastMsg(getBaseContext(), "History file loaded successfully. Length: " + history.size());
             is.close();
             fis.close();
         } catch (Exception e) {
-            Toast.makeText(getBaseContext(), "read error " +e.getMessage(), Toast.LENGTH_SHORT).show();
+            showToastMsg(getBaseContext(), "History file exists but there is read error: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private void playAudio(String audio) {
-        try {
-            byte[] decoded = Base64.decode(audio, 0);
-            MediaPlayer mediaPlayer = new MediaPlayer();
-            File tempMp3 = File.createTempFile("audio_", "amr", getCacheDir());
-            tempMp3.deleteOnExit();
-            FileOutputStream fos = new FileOutputStream(tempMp3);
-            fos.write(decoded);
-            fos.close();
-            mediaPlayer.reset();
-            FileInputStream fis = new FileInputStream(tempMp3);
-            mediaPlayer.setDataSource(fis.getFD());
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
+
 }

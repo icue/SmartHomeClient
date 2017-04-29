@@ -1,6 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:weightSum="1">
 
+    <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.9">
+    </android.support.v4.view.ViewPager>
+
+
+
+    <!--<ImageView-->
+        <!--android:id="@+id/HistoryPic"-->
+        <!--android:contentDescription="Earlier Picture"-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="0dp"-->
+        <!--android:layout_weight="0.9"-->
+        <!--android:layout_marginTop="0dp"/>-->
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        android:layout_marginTop="3dp"
+        android:weightSum="3"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/PrevButton"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="Privous"
+            android:stateListAnimator="@null"
+            android:textSize="20sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/my_button"/>
+
+        <Button
+            android:id="@+id/PlayButton"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="Audio"
+            android:stateListAnimator="@null"
+            android:textSize="20sp"
+            android:layout_marginLeft="2sp"
+            android:layout_marginRight="2sp"
+            android:textColor="@color/colorAccent"
+            android:background="@drawable/my_button_pink"/>
+
+        <Button
+            android:id="@+id/NextButton"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="Next"
+            android:stateListAnimator="@null"
+            android:textSize="20sp"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/my_button"/>
+
+    </LinearLayout>
 </LinearLayout>
