@@ -57,6 +57,10 @@ public final class Utils {
         Toast.makeText(context, msg , Toast.LENGTH_SHORT).show();
     }
 
+    public static void showToastMsg(Context context, String msg, int length) {
+        Toast.makeText(context, msg , Toast.LENGTH_LONG).show();
+    }
+
     public static Bitmap decodeSampledBitmapFromDrawable(String image, int reqWidth, int reqHeight)
             throws IOException, IllegalArgumentException {
 

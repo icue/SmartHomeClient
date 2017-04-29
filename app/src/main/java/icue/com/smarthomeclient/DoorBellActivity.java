@@ -1,7 +1,6 @@
 package icue.com.smarthomeclient;
 
 import android.app.NotificationManager;
-import android.graphics.Color;
 import android.media.MediaRecorder;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -150,7 +149,7 @@ public class DoorBellActivity extends AppCompatActivity {
                         int color = ContextCompat.getColor(context, R.color.colorPrimaryDark);
                         mRecordBtn.setBackgroundColor(color);
                         if(!canSendMsg) {
-                            showToastMsg(getBaseContext(), "Can't send message now because a response has been sent by you or your family member.");
+                            showToastMsg(getBaseContext(), "Can't send message now because a response has been sent by you or your family member.", 1);
                             mRecordBtn.setText("Click to play");
                         }
                         else
@@ -179,7 +178,7 @@ public class DoorBellActivity extends AppCompatActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if(!canSendMsg) {
-                    showToastMsg(getBaseContext(), "Can't send message now because a response has just now been sent by you or your family member.");
+                    showToastMsg(getBaseContext(), "Can't send message now because a response has been sent by you or your family member.", 1);
                     return;
                 }
                 String msgToSend = msg.getText().toString();

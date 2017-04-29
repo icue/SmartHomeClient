@@ -2,9 +2,11 @@ package icue.com.smarthomeclient;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -33,11 +35,12 @@ public class HistoryActivity extends AppCompatActivity {
     private Context context = this;
     private String groupID = null;
 
-    private Deque<Record> history = new ArrayDeque<>();
-
-    private LinearLayout ll;
-
     private ViewPager mViewPager;
+    private Button prevButton;
+    private Button nextButton;
+    private Button playButton;
+
+    private Deque<Record> history = new ArrayDeque<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,43 +67,59 @@ public class HistoryActivity extends AppCompatActivity {
 //            ll.addView(imgv);
 //        }
 
-
         PagerAdapter mCustomPagerAdapter = new CustomPagerAdapter(this, history);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mCustomPagerAdapter);
 
+        prevButton = (Button)findViewById(R.id.PrevButton);
+        nextButton = (Button)findViewById(R.id.NextButton);
+        playButton = (Button)findViewById(R.id.PlayButton);
 
-        Button prevButton = (Button)findViewById(R.id.PrevButton);
-        prevButton.setOnClickListener(new View.OnClickListener() {
+        prevButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View view) {
-                mViewPager.setCurrentItem(mViewPager.getCurrentItem() - 1, true);
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    prevButton.setTextColor(ContextCompat.getColor(context, R.color.white));
+                    prevButton.setBackgroundResource(R.drawable.my_button_pressed);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    prevButton.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+                    prevButton.setBackgroundResource(R.drawable.my_button);
+                    mViewPager.setCurrentItem(mViewPager.getCurrentItem() - 1, true);
+                }
+                return true;
             }
         });
 
-        Button nextButton = (Button)findViewById(R.id.NextButton);
-        nextButton.setOnClickListener(new View.OnClickListener() {
+        nextButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View view) {
-                mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1, true);
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    nextButton.setTextColor(ContextCompat.getColor(context, R.color.white));
+                    nextButton.setBackgroundResource(R.drawable.my_button_pressed);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    nextButton.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+                    nextButton.setBackgroundResource(R.drawable.my_button);
+                    mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1, true);
+                }
+                return true;
             }
         });
 
-        Button playButton = (Button)findViewById(R.id.PlayButton);
-        playButton.setOnClickListener(new View.OnClickListener() {
+        playButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View view) {
-                playIthAudio(mViewPager.getCurrentItem());
-//                Toast.makeText(getBaseContext(), String.valueOf(mViewPager.getCurrentItem()) , Toast.LENGTH_SHORT).show();
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    playButton.setTextColor(ContextCompat.getColor(context, R.color.white));
+                    playButton.setBackgroundResource(R.drawable.my_button_pink_pressed);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    playButton.setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
+                    playButton.setBackgroundResource(R.drawable.my_button_pink);
+                    playIthAudio(mViewPager.getCurrentItem());
+                }
+                return true;
             }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-//        unbindDrawables(ll);
     }
 
     private void playIthAudio(int position) {
@@ -139,24 +158,30 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
-    public void unbindDrawables(View view) {
-        try {
-            if (view.getBackground() != null)
-                view.getBackground().setCallback(null);
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        unbindDrawables(ll);
+//    }
 
-            if (view instanceof ImageView) {
-                ImageView imageView = (ImageView) view;
-                imageView.setImageBitmap(null);
-            } else if (view instanceof ViewGroup) {
-                ViewGroup viewGroup = (ViewGroup) view;
-                for (int i = 0; i < viewGroup.getChildCount(); i++)
-                    unbindDrawables(viewGroup.getChildAt(i));
-
-                if (!(view instanceof AdapterView))
-                    viewGroup.removeAllViews();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public void unbindDrawables(View view) {
+//        try {
+//            if (view.getBackground() != null)
+//                view.getBackground().setCallback(null);
+//
+//            if (view instanceof ImageView) {
+//                ImageView imageView = (ImageView) view;
+//                imageView.setImageBitmap(null);
+//            } else if (view instanceof ViewGroup) {
+//                ViewGroup viewGroup = (ViewGroup) view;
+//                for (int i = 0; i < viewGroup.getChildCount(); i++)
+//                    unbindDrawables(viewGroup.getChildAt(i));
+//
+//                if (!(view instanceof AdapterView))
+//                    viewGroup.removeAllViews();
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
