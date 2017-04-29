@@ -207,7 +207,8 @@ public class DoorBellActivity extends AppCompatActivity {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
                 String msg = dataSnapshot.child("message").getValue(String.class);
-                canSendMsg = msg.equals("");
+                String clientAudio = dataSnapshot.child("clientAudio").getValue(String.class);
+                canSendMsg = msg.equals("") && clientAudio.equals("");
                 if(canSendMsg) {
                     sendButton.setBackgroundResource(R.drawable.my_button);
                     int color = ContextCompat.getColor(context, R.color.colorPrimary);
