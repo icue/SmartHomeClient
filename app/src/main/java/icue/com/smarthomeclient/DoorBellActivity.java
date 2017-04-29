@@ -1,6 +1,7 @@
 package icue.com.smarthomeclient;
 
 import android.app.NotificationManager;
+import android.graphics.Color;
 import android.media.MediaRecorder;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -67,6 +68,7 @@ public class DoorBellActivity extends AppCompatActivity {
     private MediaRecorder mediaRecorder = new MediaRecorder();
     private File myAudioFile;
     private CountDownTimer ct;
+    private boolean canSendMsg = true;
 
     private Deque<Record> history = new ArrayDeque<>();
 
@@ -88,7 +90,7 @@ public class DoorBellActivity extends AppCompatActivity {
 
         ReadHistory();
 
-        Button sendButton = (Button) findViewById(R.id.SendButton);
+        final Button sendButton = (Button) findViewById(R.id.SendButton);
         Button backButton = (Button) findViewById(R.id.BackButton);
         Button mIgnoreBtn = (Button) findViewById(R.id.IgnoreButton);
         final Button historyBtn = (Button) findViewById(R.id.HistoryButton);
@@ -120,9 +122,15 @@ public class DoorBellActivity extends AppCompatActivity {
                         }
                         @Override
                         public void onFinish() {
-                            mRecordBtn.setText("Recording... Swap up to cancel");
-                            int color = ContextCompat.getColor(context, R.color.colorAccent);
-                            mRecordBtn.setBackgroundColor(color);
+                            if(canSendMsg) {
+                                mRecordBtn.setText("Recording... Swap up to cancel");
+                                int color = ContextCompat.getColor(context, R.color.colorAccent);
+                                mRecordBtn.setBackgroundColor(color);
+                            } else {
+                                mRecordBtn.setText("Can't send message now.");
+                                int color = ContextCompat.getColor(context, R.color.disabled);
+                                mRecordBtn.setBackgroundColor(color);
+                            }
                         }
                     };
                     ct.start();
@@ -139,10 +147,15 @@ public class DoorBellActivity extends AppCompatActivity {
                     } else {
                         y2 = event.getY();
                         dy = y2 - y1;
-                        mRecordBtn.setText("Click to listen / Push to record");
                         int color = ContextCompat.getColor(context, R.color.colorPrimaryDark);
                         mRecordBtn.setBackgroundColor(color);
-                        if (dy < -60){
+                        if(!canSendMsg) {
+                            showToastMsg(getBaseContext(), "Can't send message now because a response has been sent by you or your family member.");
+                            mRecordBtn.setText("Click to play");
+                        }
+                        else
+                            mRecordBtn.setText("Click to play / Push to record");
+                        if (dy < -60 || !canSendMsg){
                             discardRecord();
                             showToastMsg(getBaseContext(), "Audio discarded");
                         }
@@ -165,6 +178,10 @@ public class DoorBellActivity extends AppCompatActivity {
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                if(!canSendMsg) {
+                    showToastMsg(getBaseContext(), "Can't send message now because a response has just now been sent by you or your family member.");
+                    return;
+                }
                 String msgToSend = msg.getText().toString();
                 msg.setText("");
                 if(!msgToSend.equals("")){
@@ -190,6 +207,21 @@ public class DoorBellActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
+                String msg = dataSnapshot.child("message").getValue(String.class);
+                canSendMsg = msg.equals("");
+                if(canSendMsg) {
+                    sendButton.setBackgroundResource(R.drawable.my_button);
+                    int color = ContextCompat.getColor(context, R.color.colorPrimary);
+                    sendButton.setTextColor(color);
+                    mRecordBtn.setText("Click to play / Push to record");
+                }
+                else{
+                    sendButton.setBackgroundResource(R.drawable.my_button_disabled);
+                    int color = ContextCompat.getColor(context, R.color.disabled);
+                    sendButton.setTextColor(color);
+                    mRecordBtn.setText("Click to play");
+                }
+
                 String newPic = dataSnapshot.child("picture").getValue(String.class);
                 if(newPic==null) return;
                 prevPic = history.isEmpty() ? "" : history.getLast().getImage();

@@ -47,10 +47,9 @@
         android:id="@+id/RecordButton"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:text="Click to listen / Push to record"
+        android:text="Click to play / Push to record"
         android:layout_weight="0.1"
         android:textSize="20sp"
-
         android:background="@color/colorPrimaryDark"
         style="@style/Widget.AppCompat.Button.Colored"/>
 
