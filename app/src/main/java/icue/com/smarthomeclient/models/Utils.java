@@ -13,15 +13,27 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 /**
  * Created by Icue on 2017/4/28.
  */
 
 public final class Utils {
+
+    private static String dateFormat = "MM/dd/yyyy  HH:mm:ss";
+    private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
+
     public static Bitmap decodeFromBase64(String image) throws IOException, IllegalArgumentException {
         byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedByteArray, 0, decodedByteArray.length);
+    }
+
+    public static String ConvertMilliSecondsToFormattedDate(String milliSeconds){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(Long.parseLong(milliSeconds));
+        return simpleDateFormat.format(calendar.getTime());
     }
 
     public static String audioEncode(File file) {

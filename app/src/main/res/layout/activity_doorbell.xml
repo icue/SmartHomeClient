@@ -59,7 +59,7 @@
         android:layout_height="0dp"
         android:layout_weight="0.1"
         android:layout_marginTop="3dp"
-        android:weightSum="3"
+        android:weightSum="2"
         android:orientation="horizontal">
 
         <Button
@@ -70,14 +70,14 @@
             android:text="History"
             android:stateListAnimator="@null"
             android:textSize="20sp"
-            android:textColor="@color/colorPrimary"
-            android:background="@drawable/my_button"/>
+            android:textColor="@color/colorAccent"
+            android:background="@drawable/my_button_pink"/>
 
         <Button
             android:id="@+id/IgnoreButton"
             android:layout_width="0dp"
             android:layout_height="fill_parent"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:text="Ignore"
             android:stateListAnimator="@null"
             android:textSize="20sp"

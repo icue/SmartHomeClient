@@ -8,15 +8,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 
 import icue.com.smarthomeclient.R;
 
-import static icue.com.smarthomeclient.models.Utils.decodeFromBase64;
+import static icue.com.smarthomeclient.models.Utils.ConvertMilliSecondsToFormattedDate;
 import static icue.com.smarthomeclient.models.Utils.decodeSampledBitmapFromDrawable;
 
 /**
@@ -40,7 +42,6 @@ public class CustomPagerAdapter extends PagerAdapter {
     @Override
     public int getCount() {
         return history.size();
-//        return mResources.length;
     }
 
     @Override
@@ -53,15 +54,20 @@ public class CustomPagerAdapter extends PagerAdapter {
         View itemView = mLayoutInflater.inflate(R.layout.pager_item, container, false);
 
         ImageView imageView = (ImageView) itemView.findViewById(R.id.imageView);
+        TextView tv = (TextView) itemView.findViewById(R.id.showTime);
+        TextView tv2 = (TextView) itemView.findViewById(R.id.showIndex);
 
         // move to desired index in the deque
         Iterator<Record> it = this.history.descendingIterator();
         for(int i=0; i<position; i++)
             it.next();
 
+        Record cur = it.next();
+        tv.setText(ConvertMilliSecondsToFormattedDate(cur.getTimestamp()));
+        tv2.setText(String.valueOf(position + 1) + "/" + history.size());
         Bitmap bm = null;
         try {
-            bm = decodeSampledBitmapFromDrawable(it.next().getImage(), 200, 200);
+            bm = decodeSampledBitmapFromDrawable(cur.getImage(), 200, 200);
 //            bm = decodeFromBase64(it.next().getImage());
         } catch (IOException e) {
             e.printStackTrace();

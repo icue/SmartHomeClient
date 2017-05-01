@@ -36,8 +36,10 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import static icue.com.smarthomeclient.models.Utils.ConvertMilliSecondsToFormattedDate;
 import static icue.com.smarthomeclient.models.Utils.audioEncode;
 import static icue.com.smarthomeclient.models.Utils.decodeFromBase64;
+import static icue.com.smarthomeclient.models.Utils.decodeSampledBitmapFromDrawable;
 import static icue.com.smarthomeclient.models.Utils.playAudio;
 import static icue.com.smarthomeclient.models.Utils.showToastMsg;
 
@@ -68,6 +70,7 @@ public class DoorBellActivity extends AppCompatActivity {
     private File myAudioFile;
     private CountDownTimer ct;
     private boolean canSendMsg = true;
+    private boolean canSendAudio = true;
 
     private Deque<Record> history = new ArrayDeque<>();
 
@@ -121,7 +124,7 @@ public class DoorBellActivity extends AppCompatActivity {
                         }
                         @Override
                         public void onFinish() {
-                            if(canSendMsg) {
+                            if(canSendAudio) {
                                 mRecordBtn.setText("Recording... Swap up to cancel");
                                 int color = ContextCompat.getColor(context, R.color.colorAccent);
                                 mRecordBtn.setBackgroundColor(color);
@@ -148,13 +151,13 @@ public class DoorBellActivity extends AppCompatActivity {
                         dy = y2 - y1;
                         int color = ContextCompat.getColor(context, R.color.colorPrimaryDark);
                         mRecordBtn.setBackgroundColor(color);
-                        if(!canSendMsg) {
+                        if(!canSendAudio) {
                             showToastMsg(getBaseContext(), "Can't send message now because a response has been sent by you or your family member.", 1);
                             mRecordBtn.setText("Click to play");
                         }
                         else
                             mRecordBtn.setText("Click to play / Push to record");
-                        if (dy < -60 || !canSendMsg){
+                        if (dy < -60 || !canSendAudio){
                             discardRecord();
                             showToastMsg(getBaseContext(), "Audio discarded");
                         }
@@ -208,17 +211,21 @@ public class DoorBellActivity extends AppCompatActivity {
                 // whenever data at this location is updated.
                 String msg = dataSnapshot.child("message").getValue(String.class);
                 String clientAudio = dataSnapshot.child("clientAudio").getValue(String.class);
-                canSendMsg = msg.equals("") && clientAudio.equals("");
+                canSendMsg = msg.equals("");
+                canSendAudio = clientAudio.equals("");
                 if(canSendMsg) {
                     sendButton.setBackgroundResource(R.drawable.my_button);
                     int color = ContextCompat.getColor(context, R.color.colorPrimary);
                     sendButton.setTextColor(color);
-                    mRecordBtn.setText("Click to play / Push to record");
                 }
                 else{
                     sendButton.setBackgroundResource(R.drawable.my_button_disabled);
                     int color = ContextCompat.getColor(context, R.color.disabled);
                     sendButton.setTextColor(color);
+                }
+                if(canSendAudio){
+                    mRecordBtn.setText("Click to play / Push to record");
+                } else {
                     mRecordBtn.setText("Click to play");
                     showToastMsg(getBaseContext(), "Message replied: "+msg, 1);
                 }
@@ -238,7 +245,7 @@ public class DoorBellActivity extends AppCompatActivity {
                     }
                     SaveHistory();
 
-                    showToastMsg(getBaseContext(), "DB updated picture with timestamp " + history.getLast().getTimestamp());
+                    showToastMsg(getBaseContext(), "DB updated picture. Time: " + ConvertMilliSecondsToFormattedDate(history.getLast().getTimestamp()));
                     NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle("New visitor")
@@ -259,7 +266,8 @@ public class DoorBellActivity extends AppCompatActivity {
 
                 // newPic should not start with "data:image/jpeg;base64,/9j/...
                 try {
-                    Bitmap bm = decodeFromBase64(newPic);
+                    Bitmap bm = decodeSampledBitmapFromDrawable(newPic, 250, 250);
+//                    Bitmap bm = decodeFromBase64(newPic);
                     FBPic.setImageBitmap(bm);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -289,7 +297,8 @@ public class DoorBellActivity extends AppCompatActivity {
             mediaRecorder.setOutputFile(myAudioFile.getAbsolutePath());
             mediaRecorder.prepare();
             mediaRecorder.start();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            showToastMsg(getBaseContext(), e.toString());
             e.printStackTrace();
         }
     }
