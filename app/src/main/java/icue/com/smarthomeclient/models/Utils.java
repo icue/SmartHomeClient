@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * Created by Icue on 2017/4/28.
@@ -23,7 +24,7 @@ import java.util.Calendar;
 public final class Utils {
 
     private static String dateFormat = "MM/dd/yyyy  HH:mm:ss";
-    private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
+    private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.US);
 
     public static Bitmap decodeFromBase64(String image) throws IOException, IllegalArgumentException {
         byte[] decodedByteArray = android.util.Base64.decode(image, Base64.DEFAULT);
@@ -31,8 +32,9 @@ public final class Utils {
     }
 
     public static String ConvertMilliSecondsToFormattedDate(String milliSeconds){
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance(Locale.US);
         calendar.setTimeInMillis(Long.parseLong(milliSeconds));
+        System.out.println(simpleDateFormat.format(calendar.getTime()));
         return simpleDateFormat.format(calendar.getTime());
     }
 

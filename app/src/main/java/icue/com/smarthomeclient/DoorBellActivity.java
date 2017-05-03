@@ -56,8 +56,8 @@ public class DoorBellActivity extends AppCompatActivity {
     private static int recordThreshold = 400;
     private static String[] responseTemplates ={"Please come in.",
                                                 "I'm not home.",
-                                                "Please don't wait for me.",
-                                                "Be right back soon."};
+                                                "Please contact my neighbor.",
+                                                "I'll be right back soon."};
     private Context context = this;
     private String groupID = null;
     private DatabaseReference myRef;
